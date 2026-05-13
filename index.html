@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>莓好時光 | 大湖草莓在地農創</title>
+    
+    <!-- 引入手繪風格字體 Mali 與 Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 設定 Tailwind 自訂主題，包含指定的主色調 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        strawberry: '#E63946', // 飽滿草莓紅
+                        'strawberry-light': '#F2616D', // 淺草莓紅
+                        cream: '#FFF0F3', // 柔和奶油粉
+                        'cream-dark': '#FFE5EC', // 深奶油粉
+                        leaf: '#81B29A', // 草莓葉綠色
+                        'leaf-light': '#A8D5C2', // 淺綠色
+                        dark: '#4A4A4A', // 溫暖深灰色
+                    },
+                    fontFamily: {
+                        // 使用 Mali 增添手繪插畫感，並以 Noto Sans TC 作為中文後備
+                        handdrawn: ['Mali', '"Noto Sans TC"', 'sans-serif'],
+                        body: ['"Noto Sans TC"', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 25px -5px rgba(230, 57, 70, 0.1), 0 8px 10px -6px rgba(230, 57, 70, 0.1)',
+                        'floating': '0 20px 25px -5px rgba(230, 57, 70, 0.2), 0 10px 10px -5px rgba(230, 57, 70, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* 基礎字體套用 */
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #FFFDFD;
+            color: #4A4A4A;
+        }
+        h1, h2, h3, h4, .font-handdrawn {
+            font-family: 'Mali', 'Noto Sans TC', sans-serif;
+        }
+
+        /* 隱藏捲軸但保留捲動功能 (針對側邊欄) */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 小精靈搖擺動畫 */
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-8deg) scale(1); }
+            50% { transform: rotate(8deg) scale(1.1); }
+        }
+        .animate-wiggle {
+            animation: wiggle 1s ease-in-out infinite;
+        }
+
+        /* Toast 滑入動畫 */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .toast-enter {
+            animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .toast-exit {
+            animation: fadeOut 0.4s ease-in forwards;
+        }
+
+        /* 按鈕微縮放過渡 */
+        .btn-hover-effect {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .btn-hover-effect:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(230, 57, 70, 0.3);
+        }
+
+        /* 卡片懸浮轉場效果 */
+        .product-card {
+            transition: all 0.4s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-8px);
+            border-color: #F2616D;
+        }
+
+        /* 手繪風格波浪分隔線 */
+        .wave-divider {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+        }
+        .wave-divider svg {
+            position: relative;
+            display: block;
+            width: calc(100% + 1.3px);
+            height: 40px;
+        }
+        .wave-divider .shape-fill {
+            fill: #FFFDFD;
+        }
+    </style>
+</head>
+<body class="relative min-h-screen flex flex-col">
+
+    <header class="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-40 transition-all duration-300">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-2 group">
+                    <span class="text-3xl">🍓</span>
+                    <span class="font-handdrawn text-2xl font-bold text-strawberry tracking-wide group-hover:text-strawberry-light transition-colors">
+                        莓好時光
+                    </span>
+                </a>
+
+                <!-- 桌機版導覽連結 -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#story" class="text-dark hover:text-strawberry font-medium transition-colors">品牌故事</a>
+                    <a href="#products" class="text-dark hover:text-strawberry font-medium transition-colors">嚴選莓果</a>
+                    <a href="#experience" class="text-dark hover:text-strawberry font-medium transition-colors">採果體驗</a>
+                </nav>
+
+                <!-- 購物車圖示與數字徽章 -->
+                <button id="cart-btn" class="relative p-2 text-dark hover:text-strawberry transition-colors focus:outline-none" aria-label="打開購物車">
+                    <!-- SVG 購物車圖示 -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <!-- 數字徽章 (預設為 0) -->
+                    <span id="cart-badge" class="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-strawberry border-2 border-white rounded-full transform translate-x-1 -translate-y-1 transition-transform duration-300">
+                        0
+                    </span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow pt-20">
+        <section class="relative bg-cream min-h-[80vh] flex items-center justify-center overflow-hidden">
+            <!-- 手繪風背景裝飾 -->
+            <div class="absolute top-20 left-10 opacity-20 transform -rotate-12 w-32 h-32">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 10 C30 10, 10 30, 10 55 C10 80, 40 90, 50 90 C60 90, 90 80, 90 55 C90 30, 70 10, 50 10 Z" fill="#E63946"/>
+                    <path d="M40 5 C45 20, 55 20, 60 5 C55 10, 45 10, 40 5 Z" fill="#81B29A"/>
+                </svg>
+            </div>
+            <div class="absolute bottom-20 right-10 opacity-20 w-40 h-40 transform rotate-12">
+                 <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 10 C30 10, 10 30, 10 55 C10 80, 40 90, 50 90 C60 90, 90 80, 90 55 C90 30, 70 10, 50 10 Z" fill="#E63946"/>
+                    <path d="M40 5 C45 20, 55 20, 60 5 C55 10, 45 10, 40 5 Z" fill="#81B29A"/>
+                </svg>
+            </div>
+
+            <div class="container mx-auto px-4 relative z-10 text-center">
+                <div class="inline-block mb-4 px-4 py-1.5 bg-white/60 backdrop-blur-sm rounded-full text-leaf font-bold text-sm tracking-widest border border-leaf/20 shadow-sm">
+                    ✨ 冬季限定・鮮採直送
+                </div>
+                <h1 class="font-handdrawn text-5xl md:text-7xl font-bold text-strawberry mb-6 drop-shadow-sm leading-tight">
+                    一口咬下，<br class="md:hidden">滿滿的大湖冬日陽光
+                </h1>
+                <p class="text-lg md:text-xl text-dark/80 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
+                    孕育自純淨水源與日夜溫差，每一顆「莓好時光」草莓都承載著農人手作的溫暖。從產地到餐桌，保留最純粹的香甜與幸福。
+                </p>
+                <a href="#products" class="btn-hover-effect inline-block bg-strawberry text-white font-handdrawn font-bold text-xl px-10 py-4 rounded-full shadow-lg border-2 border-strawberry-light">
+                    立即品嚐 🍓
+                </a>
+            </div>
+
+            <!-- 底部波浪分隔線 -->
+            <div class="wave-divider">
+                <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                    <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C59.71,118.08,130.83,120.22,199.1,109.12,240.23,102.5,281.35,78.53,321.39,56.44Z" class="shape-fill"></path>
+                </svg>
+            </div>
+        </section>
+
+        <section id="products" class="py-24 bg-[#FFFDFD]">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="font-handdrawn text-4xl font-bold text-dark mb-4">嚴選好物推薦</h2>
+                    <div class="w-24 h-1 bg-leaf mx-auto rounded-full mb-4"></div>
+                    <p class="text-gray-500">精心挑選，將大自然的甜蜜裝進每個日子裡。</p>
+                </div>
+
+                <!-- 三欄式商品網格 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                    
+                    <!-- 商品卡片 1 -->
+                    <div class="product-card group relative bg-white rounded-3xl border-2 border-cream-dark p-6 shadow-soft flex flex-col h-full">
+                        <!-- 裝飾草莓花 SVG -->
+                        <div class="absolute -top-4 -left-4 w-10 h-10 bg-white rounded-full p-1 shadow-sm border border-cream text-strawberry">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 2 5 6 5 10C5 15 12 22 12 22C12 22 19 15 19 10C19 6 16 2 12 2Z"/></svg>
+                        </div>
+                        
+                        <div class="relative rounded-2xl overflow-hidden mb-6 aspect-w-4 aspect-h-3 bg-cream flex items-center justify-center">
+                            <!-- 標籤 -->
+                            <span class="absolute top-3 right-3 bg-leaf text-white text-xs font-bold px-3 py-1 rounded-full z-10 shadow-sm">產地直送</span>
+                            <!-- 圖片 Placeholder -->
+                            <img src="https://placehold.co/600x450/FFE5EC/E63946?text=新鮮草莓盒\n(示意圖)" alt="特級大湖鮮採草莓盒" class="object-cover w-full h-48 transition-transform duration-500 group-hover:scale-110">
+                        </div>
+                        
+                        <div class="flex-grow flex flex-col">
+                            <h3 class="font-handdrawn text-2xl font-bold text-dark mb-2">特級大湖鮮採草莓盒</h3>
+                            <p class="text-gray-500 text-sm mb-4 leading-relaxed">清晨採摘，嚴選果型飽滿、色澤紅潤的特級果實。每一口都是新鮮多汁的極致享受。</p>
+                            
+                            <div class="mt-auto flex items-center justify-between pt-4 border-t border-cream-dark">
+                                <span class="font-bold text-strawberry text-2xl">NT$ 580</span>
+                                <button onclick="addToCart('特級大湖鮮採草莓盒', 580, 'https://placehold.co/100x100/FFE5EC/E63946?text=草莓')" class="w-10 h-10 rounded-full bg-cream text-strawberry hover:bg-strawberry hover:text-white flex items-center justify-center transition-colors shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 商品卡片 2 -->
+                    <div class="product-card group relative bg-white rounded-3xl border-2 border-cream-dark p-6 shadow-soft flex flex-col h-full">
+                         <!-- 裝飾葉子 SVG -->
+                        <div class="absolute -top-4 -left-4 w-10 h-10 bg-white rounded-full p-1 shadow-sm border border-cream text-leaf">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>
+                        </div>
+
+                        <div class="relative rounded-2xl overflow-hidden mb-6 aspect-w-4 aspect-h-3 bg-cream flex items-center justify-center">
+                            <!-- 標籤 -->
+                            <span class="absolute top-3 right-3 bg-[#ECA146] text-white text-xs font-bold px-3 py-1 rounded-full z-10 shadow-sm">純粹無添加</span>
+                            <!-- 圖片 Placeholder -->
+                            <img src="https://placehold.co/600x450/FFFDFD/ECA146?text=草莓果醬\n(示意圖)" alt="手工慢熬草莓果醬" class="object-cover w-full h-48 transition-transform duration-500 group-hover:scale-110">
+                        </div>
+                        
+                        <div class="flex-grow flex flex-col">
+                            <h3 class="font-handdrawn text-2xl font-bold text-dark mb-2">手工慢熬草莓果醬</h3>
+                            <p class="text-gray-500 text-sm mb-4 leading-relaxed">僅使用新鮮草莓、冰糖與少許檸檬汁，經過溫火慢熬，封存草莓最濃郁天然的香氣。</p>
+                            
+                            <div class="mt-auto flex items-center justify-between pt-4 border-t border-cream-dark">
+                                <span class="font-bold text-strawberry text-2xl">NT$ 320</span>
+                                <button onclick="addToCart('手工慢熬草莓果醬', 320, 'https://placehold.co/100x100/FFFDFD/ECA146?text=果醬')" class="w-10 h-10 rounded-full bg-cream text-strawberry hover:bg-strawberry hover:text-white flex items-center justify-center transition-colors shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 商品卡片 3 -->
+                    <div class="product-card group relative bg-white rounded-3xl border-2 border-cream-dark p-6 shadow-soft flex flex-col h-full">
+                        <!-- 裝飾小太陽 SVG -->
+                        <div class="absolute -top-4 -left-4 w-10 h-10 bg-white rounded-full p-1 shadow-sm border border-cream text-[#ECA146]">
+                             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z"/></svg>
+                        </div>
+
+                        <div class="relative rounded-2xl overflow-hidden mb-6 aspect-w-4 aspect-h-3 bg-cream flex items-center justify-center">
+                            <!-- 標籤 -->
+                            <span class="absolute top-3 right-3 bg-[#4A4A4A] text-white text-xs font-bold px-3 py-1 rounded-full z-10 shadow-sm">深度體驗</span>
+                            <!-- 圖片 Placeholder -->
+                            <img src="https://placehold.co/600x450/A8D5C2/2A9D8F?text=採果體驗\n(示意圖)" alt="秘境草莓園採果半日遊" class="object-cover w-full h-48 transition-transform duration-500 group-hover:scale-110">
+                        </div>
+                        
+                        <div class="flex-grow flex flex-col">
+                            <h3 class="font-handdrawn text-2xl font-bold text-dark mb-2">秘境草莓園採果半日遊</h3>
+                            <p class="text-gray-500 text-sm mb-4 leading-relaxed">遠離塵囂，走進大湖秘境草莓園。包含採果導覽、自採草莓一盒及手作草莓大福體驗。</p>
+                            
+                            <div class="mt-auto flex items-center justify-between pt-4 border-t border-cream-dark">
+                                <span class="font-bold text-strawberry text-2xl">NT$ 850</span>
+                                <button onclick="addToCart('秘境採果半日遊', 850, 'https://placehold.co/100x100/A8D5C2/2A9D8F?text=體驗')" class="w-10 h-10 rounded-full bg-cream text-strawberry hover:bg-strawberry hover:text-white flex items-center justify-center transition-colors shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-dark text-white py-12 mt-auto">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="font-handdrawn text-3xl font-bold text-cream mb-4">莓好時光</h2>
+            <p class="text-gray-400 mb-6 text-sm">此為展示用途之純前端網站，非真實商家。</p>
+            <div class="flex justify-center space-x-4 mb-8">
+                <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">IG</div>
+                <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">FB</div>
+                <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">LINE</div>
+            </div>
+            <p class="text-gray-500 text-xs">© 2024 莓好時光 Berry Good Times. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- 懸浮 IP 角色：草莓小精靈 -->
+    <div class="fixed bottom-6 right-6 z-30 group cursor-pointer">
+        <!-- 提示對話框 -->
+        <div class="absolute bottom-full right-0 mb-4 bg-white text-dark px-4 py-2 rounded-2xl shadow-floating text-sm font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none transform origin-bottom-right scale-95 group-hover:scale-100">
+            嗨！我是莓寶 👋
+            <!-- 箭頭 -->
+            <div class="absolute -bottom-2 right-6 w-4 h-4 bg-white transform rotate-45"></div>
+        </div>
+        <!-- 角色本體 -->
+        <div class="w-16 h-16 bg-cream rounded-full border-4 border-white shadow-floating flex items-center justify-center text-4xl hover:animate-wiggle transition-transform">
+            🍓
+        </div>
+    </div>
+
+    <!-- Toast 通知容器 (固定於右下角) -->
+    <div id="toast-container" class="fixed bottom-24 right-6 z-50 flex flex-col gap-3 pointer-events-none">
+        <!-- Toast 項目將由 JS 動態生成插入於此 -->
+    </div>
+
+    <!-- 自訂 Alert 對話方塊 (隱藏) -->
+    <div id="custom-alert" class="fixed inset-0 z-[60] hidden">
+        <!-- 黑色半透明遮罩 -->
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeAlert()"></div>
+        <!-- 對話方塊內容 -->
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-[90%] text-center border-4 border-cream">
+            <div class="text-5xl mb-4">✨</div>
+            <h3 class="font-handdrawn text-2xl font-bold text-dark mb-2">溫馨提示</h3>
+            <p class="text-gray-600 mb-6">此為展示網站，感謝您的體驗！🍓<br>結帳功能尚未開放。</p>
+            <button onclick="closeAlert()" class="w-full btn-hover-effect bg-strawberry text-white font-bold py-3 rounded-full shadow-md">
+                我知道了
+            </button>
+        </div>
+    </div>
+
+    <!-- 遮罩層 -->
+    <div id="cart-overlay" class="fixed inset-0 bg-dark/20 backdrop-blur-sm z-[45] hidden transition-opacity duration-300 opacity-0"></div>
+    
+    <!-- 側邊欄面板 -->
+    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-[50] transform translate-x-full transition-transform duration-400 ease-in-out flex flex-col border-l border-cream">
+        <!-- 側邊欄頭部 -->
+        <div class="flex items-center justify-between p-6 border-b border-cream">
+            <h2 class="font-handdrawn text-2xl font-bold text-dark flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-strawberry" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                我的購物籃
+            </h2>
+            <button id="close-cart-btn" class="text-gray-400 hover:text-strawberry transition-colors p-2 rounded-full hover:bg-cream">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- 購物清單區域 -->
+        <div id="cart-items-container" class="flex-grow overflow-y-auto p-6 space-y-4 no-scrollbar">
+            <!-- 預設空購物車狀態 -->
+            <div id="empty-cart-msg" class="h-full flex flex-col items-center justify-center text-gray-400 opacity-70">
+                <div class="text-6xl mb-4 grayscale">🧺</div>
+                <p class="font-medium">購物籃空空的，快去挑選草莓吧！</p>
+            </div>
+            <!-- 商品項目將由 JS 動態產生 -->
+        </div>
+
+        <!-- 底部結帳區域 -->
+        <div class="p-6 border-t border-cream bg-[#FFFDFD]">
+            <div class="flex justify-between items-center mb-6">
+                <span class="text-gray-500 font-medium text-lg">總計金額</span>
+                <span id="cart-total" class="font-handdrawn text-3xl font-bold text-strawberry">NT$ 0</span>
+            </div>
+            <button onclick="checkout()" class="w-full btn-hover-effect bg-leaf text-white font-handdrawn font-bold text-xl py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 border-2 border-leaf-light">
+                前往結帳
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 狀態管理：購物車資料陣列
+        let cartItems = [];
+        let isCartOpen = false;
+
+        // DOM 元素選取
+        const cartBadge = document.getElementById('cart-badge');
+        const cartOverlay = document.getElementById('cart-overlay');
+        const cartSidebar = document.getElementById('cart-sidebar');
+        const cartItemsContainer = document.getElementById('cart-items-container');
+        const emptyCartMsg = document.getElementById('empty-cart-msg');
+        const cartTotal = document.getElementById('cart-total');
+        const toastContainer = document.getElementById('toast-container');
+        const customAlert = document.getElementById('custom-alert');
+
+        /**
+         * 將商品加入購物車
+         * @param {string} name - 商品名稱
+         * @param {number} price - 商品單價
+         * @param {string} img - 圖片網址
+         */
+        function addToCart(name, price, img) {
+            // 檢查是否已在購物車中
+            const existingItem = cartItems.find(item => item.name === name);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cartItems.push({ name, price, img, quantity: 1 });
+            }
+
+            // 更新 UI 與狀態
+            updateCartUI();
+            
+            // 播放加入動畫 (徽章彈跳)
+            cartBadge.classList.add('scale-150');
+            setTimeout(() => cartBadge.classList.remove('scale-150'), 200);
+
+            // 顯示 Toast 通知
+            showToast(`${name} 已加入購物籃！🍓`);
+        }
+
+        /**
+         * 顯示 Toast 通知
+         * @param {string} message - 通知訊息內容
+         */
+        function showToast(message) {
+            // 建立 Toast 元素
+            const toast = document.createElement('div');
+            // 使用 Tailwind class 設定外觀，並加入自訂動畫 class 'toast-enter'
+            toast.className = 'bg-white text-dark px-6 py-3 rounded-xl shadow-floating border-l-4 border-strawberry flex items-center gap-3 toast-enter pointer-events-auto';
+            
+            toast.innerHTML = `
+                <div class="text-strawberry">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="font-medium text-sm">${message}</div>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            // 3秒後自動移除
+            setTimeout(() => {
+                // 替換動畫為離開動畫
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-exit');
+                
+                // 動畫結束後從 DOM 移除
+                toast.addEventListener('animationend', () => {
+                    toast.remove();
+                });
+            }, 3000);
+        }
+
+        /**
+         * 更新購物車側邊欄與徽章的畫面
+         */
+        function updateCartUI() {
+            // 計算總數量與總金額
+            let totalQuantity = 0;
+            let totalPrice = 0;
+
+            // 清空目前的列表 (保留空訊息元素)
+            cartItemsContainer.innerHTML = '';
+            
+            if (cartItems.length === 0) {
+                cartItemsContainer.appendChild(emptyCartMsg);
+                emptyCartMsg.style.display = 'flex';
+            } else {
+                emptyCartMsg.style.display = 'none';
+                
+                // 產生每個商品項目
+                cartItems.forEach((item, index) => {
+                    totalQuantity += item.quantity;
+                    totalPrice += item.price * item.quantity;
+
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'flex items-center gap-4 bg-[#FFFDFD] p-3 rounded-2xl border border-cream transition-all hover:border-strawberry-light';
+                    itemEl.innerHTML = `
+                        <img src="${item.img}" alt="${item.name}" class="w-16 h-16 object-cover rounded-xl border border-cream">
+                        <div class="flex-grow">
+                            <h4 class="font-bold text-dark text-sm mb-1 line-clamp-1">${item.name}</h4>
+                            <div class="flex items-center justify-between">
+                                <span class="text-strawberry font-bold text-sm">NT$ ${item.price}</span>
+                                <div class="text-gray-500 text-xs bg-cream px-2 py-1 rounded-md">x ${item.quantity}</div>
+                            </div>
+                        </div>
+                    `;
+                    cartItemsContainer.appendChild(itemEl);
+                });
+            }
+
+            // 更新徽章與總計文字
+            cartBadge.textContent = totalQuantity;
+            // 數字加上千位號
+            cartTotal.textContent = `NT$ ${totalPrice.toLocaleString()}`;
+        }
+
+        /**
+         * 開啟購物車側邊欄
+         */
+        function openCart() {
+            isCartOpen = true;
+            cartOverlay.classList.remove('hidden');
+            // 強制重繪以觸發 CSS 動畫
+            void cartOverlay.offsetWidth;
+            cartOverlay.classList.remove('opacity-0');
+            cartOverlay.classList.add('opacity-100');
+            
+            cartSidebar.classList.remove('translate-x-full');
+            document.body.style.overflow = 'hidden'; // 防止背景滾動
+        }
+
+        /**
+         * 關閉購物車側邊欄
+         */
+        function closeCart() {
+            isCartOpen = false;
+            cartOverlay.classList.remove('opacity-100');
+            cartOverlay.classList.add('opacity-0');
+            
+            cartSidebar.classList.add('translate-x-full');
+            document.body.style.overflow = ''; // 恢復背景滾動
+            
+            // 等待過渡動畫完成後再隱藏遮罩
+            setTimeout(() => {
+                if (!isCartOpen) cartOverlay.classList.add('hidden');
+            }, 300);
+        }
+
+        /**
+         * 結帳按鈕邏輯 (開啟自訂提示框)
+         */
+        function checkout() {
+            closeCart();
+            customAlert.classList.remove('hidden');
+        }
+
+        /**
+         * 關閉自訂提示框
+         */
+        function closeAlert() {
+            customAlert.classList.add('hidden');
+        }
+
+        // --- 綁定事件監聽器 ---
+
+        // 導覽列購物車按鈕
+        document.getElementById('cart-btn').addEventListener('click', openCart);
+        
+        // 側邊欄關閉按鈕
+        document.getElementById('close-cart-btn').addEventListener('click', closeCart);
+        
+        // 點擊遮罩層關閉
+        cartOverlay.addEventListener('click', closeCart);
+
+        // 頁面滾動時導覽列增加陰影與背景透明度變化
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 20) {
+                header.classList.add('shadow-md', 'bg-white/95');
+                header.classList.remove('bg-white/90', 'shadow-sm');
+            } else {
+                header.classList.remove('shadow-md', 'bg-white/95');
+                header.classList.add('bg-white/90', 'shadow-sm');
+            }
+        });
+
+    </script>
+</body>
+</html>
